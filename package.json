@@ -1,0 +1,54 @@
+{
+  "name": "@yellowkode/suno-mcp",
+  "version": "1.0.7",
+  "description": "MCP Server for Suno AI — Generate music directly from Claude, Cursor, and any MCP-compatible client. by YellowKode Academy",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "suno-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "mcp",
+    "suno",
+    "ai",
+    "music",
+    "claude",
+    "model-context-protocol",
+    "yellowkode"
+  ],
+  "author": "YellowKode Academy <ola@yellowkode.com.br>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YellowKode-Academy/suno-mcp"
+  },
+  "homepage": "https://sunoboard.com",
+  "bugs": {
+    "url": "https://github.com/YellowKode-Academy/suno-mcp/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "@yellowkode/suno-mcp-core": "^1.0.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.9"
+  }
+}
