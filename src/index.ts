@@ -9,6 +9,10 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprot
 import { createHandlers, toolSchemas } from '@yellowkode/suno-mcp-core';
 import type { GenerateMusicParams } from '@yellowkode/suno-mcp-core';
 import { detectApiBase, isSunoBoardKey } from './config.js';
+import { createRequire } from 'node:module';
+
+// Versão vem do package.json — evita divergir do npm (antes estava fixo em '1.1.0' com o npm em 1.0.7)
+const { version: PKG_VERSION } = createRequire(import.meta.url)('../package.json') as { version: string };
 
 const SUNO_API_KEY = process.env.SUNO_API_KEY;
 const MAX_POLL_ATTEMPTS = parseInt(process.env.MAX_POLL_ATTEMPTS || '30');
@@ -41,7 +45,7 @@ const handlers = createHandlers({
 // ─────────────────────────────────────────
 
 const server = new Server(
-  { name: '@yellowkode/suno-mcp', version: '1.1.0' },
+  { name: '@yellowkode/suno-mcp', version: PKG_VERSION },
   { capabilities: { tools: {} } },
 );
 
