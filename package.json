@@ -1,6 +1,6 @@
 {
   "name": "@yellowkode/suno-mcp",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "description": "MCP Server for Suno AI — Generate music directly from Claude, Cursor, and any MCP-compatible client. by YellowKode Academy",
   "type": "module",
   "main": "dist/index.js",
@@ -17,6 +17,7 @@
   },
   "files": [
     "dist",
+    "!dist/__tests__",
     "README.md"
   ],
   "keywords": [

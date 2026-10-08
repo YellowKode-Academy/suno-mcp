@@ -9,6 +9,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprot
 import { createHandlers, toolSchemas } from '@yellowkode/suno-mcp-core';
 import type { GenerateMusicParams } from '@yellowkode/suno-mcp-core';
 import { detectApiBase, isSunoBoardKey } from './config.js';
+import { createSunoBoardTools, withAnnotations } from './sunoboard/tools.js';
 import { createRequire } from 'node:module';
 
 // Versão vem do package.json — evita divergir do npm (antes estava fixo em '1.1.0' com o npm em 1.0.7)
@@ -49,10 +50,20 @@ const server = new Server(
   { capabilities: { tools: {} } },
 );
 
-server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: toolSchemas }));
+// Chave SunoBoard (sb_...): efeitos sonoros, vários modelos, uso, biblioteca — igual ao mcp.sunoboard.com
+const sunoboard = isSunoBoardKey(SUNO_API_KEY)
+  ? createSunoBoardTools({ apiKey: SUNO_API_KEY, apiBase: SUNO_API_BASE, handlers })
+  : null;
+
+server.setRequestHandler(ListToolsRequestSchema, async () => ({
+  tools: sunoboard ? await sunoboard.listTools() : toolSchemas.map(withAnnotations),
+}));
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
+
+  const sb = sunoboard ? await sunoboard.callTool(name, (args ?? {}) as Record<string, unknown>) : null;
+  if (sb) return sb;
 
   try {
     let result: unknown;

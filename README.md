@@ -108,6 +108,18 @@ Add to `.cursor/mcp.json` or `.vscode/mcp.json`:
 | `list_recent_music` | List recently generated tracks |
 | `get_credits` | Check remaining API credits |
 
+**With a SunoBoard key (`sb_...`) you also get:**
+
+| Tool | Description |
+|------|-------------|
+| `generate_sfx` | Generate a sound effect from text (footsteps, coins, doors, UI clicks, whooshes…), 0.5–10 s, ready in ~2 s |
+| `list_models` | Music and SFX models (Suno, Google Lyria, MiniMax, Stable Audio, ElevenLabs, TangoFlux) with what each costs |
+| `get_usage` | Credits and sound effects left this month, reset date, your default models |
+| `search_library` | Search the public SunoBoard library of ready-made tracks (free) |
+| `get_referral_link` | Your referral link (bonus credits for you and a friend) |
+
+With a SunoBoard key, `generate_music` also accepts `model` = `lyria-3-pro`, `minimax-2.6`, `stable-audio-2.5` or `elevenlabs-music` (plus `duration_seconds` where supported). Get your key at [sunoboard.com/settings](https://sunoboard.com/settings) — or skip the install and add the hosted connector `https://mcp.sunoboard.com/mcp` ([guide](https://sunoboard.com/suno-mcp)).
+
 ### `generate_music` parameters
 
 | Parameter | Type | Default | Description |
@@ -137,6 +149,10 @@ Claude calls `generate_music` → `wait_for_music` and returns the audio URL.
 ### Game development
 
 > *"Generate dramatic battle music for an RPG boss fight, orchestral, no lyrics, intense"*
+
+### Sound effects for your game (SunoBoard key)
+
+> *"Here's my list of 20 sounds (footsteps on grass, coin pickup, door creak…). Generate each one with generate_sfx and save them to assets/audio/sfx"*
 
 ### Custom lyrics
 
