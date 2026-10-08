@@ -33,7 +33,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YellowKode-Academy/suno-mcp"
+    "url": "git+https://github.com/YellowKode-Academy/suno-mcp.git"
   },
   "homepage": "https://sunoboard.com",
   "bugs": {
