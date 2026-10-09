@@ -28,6 +28,10 @@ export const extraToolSchemas = [
       properties: {
         prompt: { type: 'string', description: 'What the sound is, e.g. "heavy wooden door creaking open slowly"' },
         durationSeconds: { type: 'number', description: 'Length in seconds, 0.5–10 (default 3)' },
+        public: {
+          type: 'boolean',
+          description: 'Also share it on SunoBoard Discover → Sound FX so other creators can play and download it (default false = private). Only when the user asks to publish/share.',
+        },
       },
       required: ['prompt'],
     },
@@ -215,6 +219,7 @@ export function createSunoBoardTools(opts: { apiKey: string; apiBase: string; we
           prompt: String(args.prompt ?? ''),
           ...(typeof args.durationSeconds === 'number' ? { durationSeconds: args.durationSeconds } : {}),
           ...(typeof args.model === 'string' && args.model ? { model: args.model } : {}),
+          ...(args.public === true ? { isPublic: true } : {}),
         });
         const modelId = sfx.model ?? 'elevenlabs-sfx';
         const musicPool = sfx.quotaPool === 'music';

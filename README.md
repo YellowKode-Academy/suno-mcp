@@ -112,7 +112,7 @@ Add to `.cursor/mcp.json` or `.vscode/mcp.json`:
 
 | Tool | Description |
 |------|-------------|
-| `generate_sfx` | Generate a sound effect from text (footsteps, coins, doors, UI clicks, whooshes…), 0.5–10 s, ready in ~2 s |
+| `generate_sfx` | Generate a sound effect from text (footsteps, coins, doors, UI clicks, whooshes…), 0.5–10 s, ready in ~2 s. Pass `public: true` to also share it on SunoBoard Discover |
 | `list_models` | Music and SFX models (Suno, Google Lyria, MiniMax, Stable Audio, ElevenLabs, TangoFlux) with what each costs |
 | `get_usage` | Credits and sound effects left this month, reset date, your default models |
 | `search_library` | Search the public SunoBoard library of ready-made tracks (free) |
