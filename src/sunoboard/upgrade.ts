@@ -10,6 +10,8 @@ export interface UpgradeOffer {
   priceLabel?: string;
   price?: { usd?: { label?: string }; brl?: { label?: string } };
   recommended?: boolean;
+  /** Checkout em 1 clique (link assinado pela API, abre o Stripe direto, sem login). */
+  checkoutUrl?: string;
 }
 
 export interface QuotaExceededPayload {
@@ -25,6 +27,8 @@ export interface QuotaExceededPayload {
   remaining?: number;
   /** O modelo pedido custa mais do que sobra (ex.: MiniMax 4, sobram 2). */
   requested?: { label: string; cost: number; left: number };
+  /** Checkout em 1 clique da oferta recomendada (link assinado pela API). */
+  checkoutUrl?: string;
 }
 
 export interface UsagePayload {
@@ -38,6 +42,19 @@ export interface UsagePayload {
   offers?: UpgradeOffer[];
   /** BYOK: Suno é ilimitado; os outros modelos gastam os créditos do plano (este bloco). */
   otherModels?: UsagePayload;
+  /** Missões da 1ª sessão (GET /api/v1/usage). */
+  onboarding?: { rewardReady?: boolean; claimed?: boolean; reward?: number; done?: number; total?: number; claimUrl?: string };
+}
+
+/**
+ * Aviso no chat quando as 3 missões principais estão feitas e a recompensa ainda não foi resgatada —
+ * quem usa só pelo Claude nunca veria o painel do site.
+ */
+export function formatRewardNotice(u: UsagePayload | undefined): string | undefined {
+  const o = u?.onboarding;
+  if (!o?.rewardReady || o.claimed) return undefined;
+  const url = o.claimUrl && /^https:\/\/([a-z0-9-]+\.)*sunoboard\.com\//i.test(o.claimUrl) ? o.claimUrl : 'https://sunoboard.com/dashboard';
+  return `🎁 You completed the first-session quests — claim ${o.reward ?? 3} free credits at ${url} (one click on the gift).`;
 }
 
 const PLAN_TITLES: Record<string, string> = { free: 'Free', basic: 'Basic', pro: 'Pro', studio: 'Studio' };
@@ -85,6 +102,17 @@ export function parseQuotaExceeded(input: unknown): QuotaExceededPayload | null 
   return null;
 }
 
+/** Só aceita o link de checkout da própria API (https://api.sunoboard.com/billing/go?t=…). */
+function safeCheckoutUrl(url?: string): string | undefined {
+  if (!url) return undefined;
+  try {
+    const u = new URL(url);
+    return u.protocol === 'https:' && /(^|\.)sunoboard\.com$/.test(u.hostname) && u.pathname === '/billing/go' ? url : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function priceText(o: UpgradeOffer): string {
   if (o.priceLabel) return o.priceLabel;
   const usd = o.price?.usd?.label;
@@ -97,6 +125,8 @@ export function formatQuotaExceeded(p: QuotaExceededPayload, webUrl: string): st
   const when = formatResetDate(p.resetsAt);
   const link = upgradeLink(webUrl, p.kind);
   const offers = (p.offers ?? []).slice(0, 2);
+  // Link assinado (API): abre o checkout do Stripe direto — é a 1ª ação; o /upgrade fica como alternativa
+  const oneClick = safeCheckoutUrl(p.checkoutUrl ?? offers.find((o) => o.recommended)?.checkoutUrl ?? offers[0]?.checkoutUrl);
 
   const r = p.requested;
   const lines = r && r.left > 0
@@ -107,18 +137,21 @@ export function formatQuotaExceeded(p: QuotaExceededPayload, webUrl: string): st
     : [
         `You've used all ${sfx ? `${n(p.limit)} sound effects` : credits(p.limit)} on the ${planTitle(p.plan)} plan this month. Nothing was generated or charged.`,
       ];
+  if (oneClick) lines.push('', `Upgrade in one click: ${oneClick}`);
   if (offers.length) {
-    lines.push('', 'Keep creating right now:');
+    lines.push('', oneClick ? 'Options:' : 'Keep creating right now:');
     for (const o of offers) {
       const price = priceText(o);
       lines.push(`• ${o.title}${price ? ` (${price})` : ''}${o.includes ? `: ${o.includes}` : ''}${o.recommended ? ' — recommended' : ''}`);
     }
   }
-  lines.push('', `Upgrade in one click: ${link}`);
+  lines.push('', oneClick ? `See all options: ${link}` : `Upgrade in one click: ${link}`);
   if (when) lines.push(`Or wait — your ${sfx ? 'sound effects' : 'credits'} reset on ${when}.`);
   lines.push(
     '',
-    "(Assistant: share these options and the link with the user in your own words — say what each costs and what they get. Don't retry this tool until they upgrade or the credits reset.)",
+    oneClick
+      ? "(Assistant: give the user the one-click link first — it opens a secure Stripe checkout for their account, no login needed — then share the options in your own words: what each costs and what they get. Don't retry this tool until they upgrade or the credits reset.)"
+      : "(Assistant: share these options and the link with the user in your own words — say what each costs and what they get. Don't retry this tool until they upgrade or the credits reset.)",
   );
   return lines.join('\n');
 }

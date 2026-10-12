@@ -1,6 +1,6 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { formatQuotaExceeded, formatQuotaNotice, formatUsageSummary, parseQuotaExceeded, type QuotaExceededPayload } from '../sunoboard/upgrade.js';
+import { formatQuotaExceeded, formatQuotaNotice, formatRewardNotice, formatUsageSummary, parseQuotaExceeded, type QuotaExceededPayload } from '../sunoboard/upgrade.js';
 
 const WEB = 'https://sunoboard.com';
 
@@ -72,6 +72,37 @@ test('formatQuotaExceeded: o que aconteceu, 2 ofertas com preço (1 linha cada),
   assert.doesNotMatch(text, /generations?\b/i);
 });
 
+test('formatQuotaExceeded: com checkoutUrl assinado, "Upgrade in one click" é a 1ª ação (antes das ofertas)', () => {
+  const go = 'https://api.sunoboard.com/billing/go?t=abc.def';
+  const text = formatQuotaExceeded(
+    { ...body, checkoutUrl: go, offers: body.offers!.map((o) => ({ ...o, checkoutUrl: `${go}-${o.id}` })) },
+    WEB,
+  );
+  const lines = text.split('\n');
+  const oneClick = lines.findIndex((l) => l === `Upgrade in one click: ${go}`);
+  assert.ok(oneClick > 0, 'linha do checkout em 1 clique');
+  assert.ok(oneClick < lines.findIndex((l) => l.startsWith('• ')), 'vem antes das ofertas');
+  assert.equal(lines.filter((l) => l.startsWith('Upgrade in one click')).length, 1);
+  // o resto continua: ofertas com preço, link do /upgrade como alternativa e a data
+  assert.match(text, /^• Pro \(US\$9\.97\/month · R\$49,97\/mês\)/m);
+  assert.match(text, /See all options: https:\/\/sunoboard\.com\/upgrade\?kind=music&src=mcp/);
+  assert.match(text, /your credits reset on Nov 1/);
+  assert.match(text, /give the user the one-click link first/);
+});
+
+test('formatQuotaExceeded: checkoutUrl só da oferta recomendada também vira a 1ª ação', () => {
+  const go = 'https://api.sunoboard.com/billing/go?t=xyz';
+  const text = formatQuotaExceeded({ ...body, offers: [{ ...body.offers![0], checkoutUrl: go }, body.offers![1]] }, WEB);
+  assert.match(text, new RegExp(`Upgrade in one click: ${go.replace(/[.?]/g, '\\$&')}`));
+});
+
+test('formatQuotaExceeded: ignora checkoutUrl fora da API da SunoBoard (mantém o texto antigo)', () => {
+  const text = formatQuotaExceeded({ ...body, checkoutUrl: 'https://evil.example.com/billing/go?t=1' }, WEB);
+  assert.doesNotMatch(text, /evil/);
+  assert.match(text, /Upgrade in one click: https:\/\/sunoboard\.com\/upgrade\?kind=music&src=mcp/);
+  assert.match(text, /Keep creating right now:/);
+});
+
 test('formatQuotaExceeded: SFX usa kind=sfx no link; sem ofertas mostra só link e data', () => {
   const text = formatQuotaExceeded({ ...body, kind: 'sfx', plan: 'studio', limit: 1000, offers: [] }, WEB);
   assert.match(text, /all 1,000 sound effects on the Studio plan/);
@@ -132,4 +163,14 @@ test('integração: generate_music do suno-mcp-core recebendo 402 da API → tex
   } finally {
     globalThis.fetch = realFetch;
   }
+});
+
+test('formatRewardNotice: só quando as missões estão feitas e a recompensa não foi resgatada', () => {
+  assert.equal(formatRewardNotice(undefined), undefined);
+  assert.equal(formatRewardNotice({ onboarding: { rewardReady: false } }), undefined);
+  assert.equal(formatRewardNotice({ onboarding: { rewardReady: true, claimed: true } }), undefined);
+  const msg = formatRewardNotice({ onboarding: { rewardReady: true, claimed: false, reward: 3, claimUrl: 'https://sunoboard.com/dashboard' } })!;
+  assert.match(msg, /claim 3 free credits at https:\/\/sunoboard\.com\/dashboard/);
+  // link fora do domínio nunca vai para o chat
+  assert.match(formatRewardNotice({ onboarding: { rewardReady: true, claimUrl: 'https://evil.example/x' } })!, /https:\/\/sunoboard\.com\/dashboard/);
 });

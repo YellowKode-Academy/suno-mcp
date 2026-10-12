@@ -13,7 +13,7 @@ import {
   normalizeMusicModel,
   sunoLegacyValue,
 } from './models.js';
-import { formatQuotaExceeded, formatQuotaNotice, formatUsageSummary, parseQuotaExceeded, type UsagePayload } from './upgrade.js';
+import { formatQuotaExceeded, formatQuotaNotice, formatRewardNotice, formatUsageSummary, parseQuotaExceeded, type UsagePayload } from './upgrade.js';
 
 type Handlers = ReturnType<typeof createHandlers>;
 type ToolResult = { content: Array<{ type: 'text'; text: string }>; isError?: boolean };
@@ -196,8 +196,10 @@ export function createSunoBoardTools(opts: { apiKey: string; apiBase: string; we
           };
         }
         const effectiveId = modelId ?? 'suno-v4_5';
-        const pool = creditPool(await fetchUsage(), isSunoId(effectiveId));
+        const usage = await fetchUsage();
+        const pool = creditPool(usage, isSunoId(effectiveId));
         const notice = formatQuotaNotice(pool, WEB_URL);
+        const reward = formatRewardNotice(usage);
         return {
           ...gen,
           model: modelNotice({
@@ -211,6 +213,7 @@ export function createSunoBoardTools(opts: { apiKey: string; apiBase: string; we
             defaultLabel: catalog.music.find((m) => m.id === defaultId)?.label,
           }),
           ...(notice ? { notice } : {}),
+          ...(reward ? { reward } : {}),
         };
       }
       case 'generate_sfx': {
@@ -223,9 +226,12 @@ export function createSunoBoardTools(opts: { apiKey: string; apiBase: string; we
         });
         const modelId = sfx.model ?? 'elevenlabs-sfx';
         const musicPool = sfx.quotaPool === 'music';
-        const remaining = musicPool ? creditPool(await fetchUsage(), false)?.remaining : sfx.remaining;
+        const usage = await fetchUsage();
+        const remaining = musicPool ? creditPool(usage, false)?.remaining : sfx.remaining;
+        const reward = formatRewardNotice(usage);
         return {
           ...sfx,
+          ...(reward ? { reward } : {}),
           tip: `Download the audioUrl. All your sound effects are also at ${WEB_URL}/sfx`,
           modelNotice: modelNotice({
             kind: 'sfx',
