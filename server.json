@@ -1,0 +1,36 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "name": "io.github.yellowkode-academy/suno-mcp",
+  "title": "SunoBoard",
+  "description": "AI music and sound effects for games and videos: Suno, Lyria, Stable Audio, MiniMax and ElevenLabs from Claude.",
+  "websiteUrl": "https://sunoboard.com/suno-mcp",
+  "repository": {
+    "url": "https://github.com/YellowKode-Academy/suno-mcp",
+    "source": "github"
+  },
+  "version": "1.1.2",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.sunoboard.com/mcp"
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@yellowkode/suno-mcp",
+      "version": "1.1.2",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "SUNO_API_KEY",
+          "description": "Your sunoapi.org API key (local mode; the hosted server at mcp.sunoboard.com uses OAuth instead)",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
