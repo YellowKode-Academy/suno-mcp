@@ -45,7 +45,7 @@ describe('suno-mcp startup', () => {
   }, 10000);
 
   it('logs BYOK mode for non-sb_ keys', async () => {
-    const { stderr } = await runProcess({ SUNO_API_KEY: 'e57efd1b3c4a2f8d' }, 2000);
+    const { stderr } = await runProcess({ SUNO_API_KEY: '0000aaaa1111bbbb' }, 2000);
     expect(stderr).toContain('sunoapi.org directly');
   }, 10000);
 });

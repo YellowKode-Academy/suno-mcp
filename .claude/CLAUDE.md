@@ -6,7 +6,7 @@ Permite usar o Suno AI diretamente no Claude Desktop, Claude Code, VSCode com Cl
 
 Suporta dois tipos de chave:
 - **`sb_...`** → SunoBoard API (`api.sunoboard.com`) — gerações aparecem no dashboard
-- **`e57efd1b...`** → sunoapi.org direto (BYOK)
+- **`abc123...`** → sunoapi.org direto (BYOK)
 
 O servidor **auto-detecta** qual API usar com base no prefixo da chave.
 

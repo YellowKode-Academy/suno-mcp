@@ -21,7 +21,7 @@ const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '10000');
 
 if (!SUNO_API_KEY) {
   console.error('[suno-mcp] ERROR: SUNO_API_KEY environment variable is required');
-  console.error('[suno-mcp] Use a sunoapi.org key (e.g. e57efd1b...) or a SunoBoard key (sb_...)');
+  console.error('[suno-mcp] Use a sunoapi.org key (e.g. abc123...) or a SunoBoard key (sb_...)');
   process.exit(1);
 }
 

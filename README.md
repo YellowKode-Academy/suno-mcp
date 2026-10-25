@@ -29,7 +29,7 @@ Instead of manually calling the API, you can just tell Claude:
 | Option | Key format | Where to get |
 |--------|-----------|--------------|
 | **SunoBoard** (recommended) | `sb_...` | [sunoboard.com](https://sunoboard.com) — generations saved to your dashboard |
-| **sunoapi.org** (BYOK) | `e57efd1b...` | [sunoapi.org](https://sunoapi.org) → Dashboard → API Keys |
+| **sunoapi.org** (BYOK) | `abc123...` | [sunoapi.org](https://sunoapi.org) → Dashboard → API Keys |
 
 The server **auto-detects** which API to use based on the key prefix. No extra config needed.
 

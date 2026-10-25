@@ -8,7 +8,7 @@ describe('isSunoBoardKey', () => {
   });
 
   it('returns false for sunoapi.org keys', () => {
-    expect(isSunoBoardKey('e57efd1b3c4a2f8d')).toBe(false);
+    expect(isSunoBoardKey('0000aaaa1111bbbb')).toBe(false);
     expect(isSunoBoardKey('sk-abc')).toBe(false);
     expect(isSunoBoardKey('')).toBe(false);
   });
@@ -27,7 +27,7 @@ describe('detectApiBase', () => {
   });
 
   it('returns sunoapi.org URL for non-sb_ keys', () => {
-    expect(detectApiBase('e57efd1b3c4a')).toBe(SUNOAPI_ORG);
+    expect(detectApiBase('0000aaaa1111bbbb')).toBe(SUNOAPI_ORG);
     expect(detectApiBase('any-random-key')).toBe(SUNOAPI_ORG);
   });
 
