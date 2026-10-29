@@ -11,7 +11,7 @@ test('402 por custo do modelo (MiniMax 4, sobram 2): explica e sugere o Suno', (
   );
   assert.match(text, /^MiniMax Music 2\.6 needs 4 credits and you have 2 left on the Free plan\. Nothing was generated or charged\./);
   assert.match(text, /Suno costs 1 credit → 2 songs/);
-  assert.match(text, /model "suno-v4_5"/);
+  assert.match(text, /model "suno-v6"/);
   assert.match(text, /Upgrade in one click: https:\/\/sunoboard\.com\/upgrade\?kind=music&src=mcp/);
 });
 

@@ -132,7 +132,7 @@ export function formatQuotaExceeded(p: QuotaExceededPayload, webUrl: string): st
   const lines = r && r.left > 0
     ? [
         `${r.label} needs ${credits(r.cost)} and you have ${n(r.left)} left on the ${planTitle(p.plan)} plan. Nothing was generated or charged.`,
-        `A lighter model still fits: Suno costs 1 credit → 2 songs — call generate_music with model "suno-v4_5", or list_models to compare.`,
+        `A lighter model still fits: Suno costs 1 credit → 2 songs — call generate_music with model "suno-v6", or list_models to compare.`,
       ]
     : [
         `You've used all ${sfx ? `${n(p.limit)} sound effects` : credits(p.limit)} on the ${planTitle(p.plan)} plan this month. Nothing was generated or charged.`,

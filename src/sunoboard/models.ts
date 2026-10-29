@@ -35,26 +35,39 @@ export interface McpCatalog {
   userDefaults?: { music?: { id: string }; sfx?: { id: string } };
 }
 
-/** Valores antigos do campo `model` (sunoapi.org) — continuam aceitos. */
+/**
+ * Valores do campo `model` no formato da sunoapi.org. V4…V5_5 foram descontinuados pela sunoapi (29/10/2026,
+ * erro 500 "Internal Error"): continuam aceitos, mas geram com o V6. A ordem importa (sunoLegacyValue).
+ */
 export const LEGACY_SUNO: Record<string, string> = {
-  V4: 'suno-v4',
-  V4_5: 'suno-v4_5',
-  V4_5PLUS: 'suno-v4_5plus',
-  V4_5ALL: 'suno-v4_5all',
-  V5: 'suno-v5',
-  V5_5: 'suno-v5_5',
+  V6: 'suno-v6',
+  V6_WILD: 'suno-v6_wild',
+  V6_MINI: 'suno-v6_mini',
+  V4: 'suno-v6',
+  V4_5: 'suno-v6',
+  V4_5PLUS: 'suno-v6',
+  V4_5ALL: 'suno-v6',
+  V5: 'suno-v6',
+  V5_5: 'suno-v6',
+};
+
+/** Ids antigos do catálogo (preferência salva, clientes antigos) → modelo atual. */
+export const RETIRED_SUNO: Record<string, string> = {
+  'suno-v4': 'suno-v6',
+  'suno-v4_5': 'suno-v6',
+  'suno-v4_5plus': 'suno-v6',
+  'suno-v4_5all': 'suno-v6',
+  'suno-v5': 'suno-v6',
+  'suno-v5_5': 'suno-v6',
 };
 
 const suno = (id: string, label: string): McpModel => ({ id, label, kind: 'music', quotaCost: 1, provider: 'suno', supportsCustomMode: true });
 
 export const FALLBACK_CATALOG: McpCatalog = {
   music: [
-    { ...suno('suno-v4_5', 'Suno V4.5'), default: true },
-    suno('suno-v4', 'Suno V4'),
-    suno('suno-v4_5plus', 'Suno V4.5+'),
-    suno('suno-v4_5all', 'Suno V4.5 All'),
-    suno('suno-v5', 'Suno V5'),
-    suno('suno-v5_5', 'Suno V5.5'),
+    { ...suno('suno-v6', 'Suno V6'), default: true },
+    suno('suno-v6_wild', 'Suno V6 Wild'),
+    suno('suno-v6_mini', 'Suno V6 Mini'),
     { id: 'lyria-3-pro', label: 'Google Lyria 3 Pro', kind: 'music', quotaCost: 2, provider: 'replicate' },
     { id: 'minimax-2.6', label: 'MiniMax Music 2.6', kind: 'music', quotaCost: 4, provider: 'replicate', supportsCustomMode: true },
     { id: 'stable-audio-2.5', label: 'Stable Audio 2.5', kind: 'music', quotaCost: 5, provider: 'replicate', instrumentalOnly: true, defaultDurationSec: 90, maxDurationSec: 190 },
@@ -68,6 +81,9 @@ export const FALLBACK_CATALOG: McpCatalog = {
 
 /** Dica curta por modelo (schema, aviso e list_models). */
 export const MODEL_HINTS: Record<string, string> = {
+  'suno-v6': 'newest Suno: natural vocals, lyrics, best value',
+  'suno-v6_wild': 'bolder, more distinctive Suno',
+  'suno-v6_mini': 'fast and light Suno',
   'suno-v4_5': 'songs with lyrics & vocals, best value',
   'suno-v4': 'classic & fast',
   'suno-v4_5plus': 'richer sound',
@@ -108,7 +124,8 @@ export function sunoLegacyValue(id: string): string | undefined {
 export function normalizeMusicModel(input: unknown): string | undefined {
   if (typeof input !== 'string' || !input.trim()) return undefined;
   const raw = input.trim();
-  return LEGACY_SUNO[raw.toUpperCase()] ?? raw.toLowerCase();
+  const lower = raw.toLowerCase();
+  return LEGACY_SUNO[raw.toUpperCase()] ?? RETIRED_SUNO[lower] ?? lower;
 }
 
 /** Duração efetiva (s) de um modelo com custo por duração. */
@@ -158,7 +175,7 @@ export function extendToolSchemas<T extends { name: string; description?: string
     if (tool.name === 'generate_music') {
       const ids = catalog.music.map((m) => m.id);
       const list = catalog.music
-        .filter((m) => !isSunoId(m.id) || m.id === 'suno-v4_5' || m.id === 'suno-v5_5')
+        .filter((m) => !isSunoId(m.id) || m.id === 'suno-v6')
         .map((m) => {
           const cost = m.costPerSeconds
             ? `${costResult(m, { short: true })} by default, 1 credit per ${m.costPerSeconds} s`
@@ -170,7 +187,7 @@ export function extendToolSchemas<T extends { name: string; description?: string
       return {
         ...tool,
         description:
-          `${tool.description} Several AI models are available (see list_models); the default is the user's profile default (normally Suno V4.5). Each model costs a different number of the user's monthly credits — tell the user what it costs and what they get (Suno: 1 credit → 2 songs).`,
+          `${tool.description} Several AI models are available (see list_models); the default is the user's profile default (normally Suno V6). Each model costs a different number of the user's monthly credits — tell the user what it costs and what they get (Suno: 1 credit → 2 songs).`,
         inputSchema: {
           ...tool.inputSchema,
           properties: {
@@ -179,7 +196,7 @@ export function extendToolSchemas<T extends { name: string; description?: string
               type: 'string',
               enum: [...ids, ...Object.keys(LEGACY_SUNO)],
               description:
-                `Music model. Omit to use the user's default model from their SunoBoard profile. Options (credits → what you get): ${list}. Other Suno versions: suno-v4, suno-v4_5plus, suno-v4_5all, suno-v5 (1 credit → 2 songs each). Legacy values V4…V5_5 still work. Lyrics (customMode) are sung exactly only by Suno and minimax-2.6.`,
+                `Music model. Omit to use the user's default model from their SunoBoard profile. Options (credits → what you get): ${list}. Other Suno versions: suno-v6_wild (bolder), suno-v6_mini (fast) (1 credit → 2 songs each). Legacy values V4…V5_5 still work and generate with Suno V6. Lyrics (customMode) are sung exactly only by Suno and minimax-2.6.`,
             },
             ...(hasLength.length
               ? {
@@ -248,7 +265,7 @@ export function modelNotice(opts: {
     : '';
   const sfxHints: Record<string, string> = { 'elevenlabs-sfx': 'best overall', tangoflux: 'cheaper' };
   const others = list
-    .filter((x) => x.id !== modelId && x.available !== false && (!isSunoId(x.id) || (x.id === 'suno-v4_5' && !isSunoId(modelId))))
+    .filter((x) => x.id !== modelId && x.available !== false && (!isSunoId(x.id) || (x.id === 'suno-v6' && !isSunoId(modelId))))
     .map((x) => `${x.id} (${[costResult(x, { short: true }), kind === 'sfx' ? sfxHints[x.id] : ''].filter(Boolean).join(', ')})`)
     .join(', ');
   return `🎛️ Model: ${label} — ${which} · ${spent}.${left} Change your default at ${SETTINGS_MODELS_URL}${others ? ` or ask me for: ${others}` : ''}.`;

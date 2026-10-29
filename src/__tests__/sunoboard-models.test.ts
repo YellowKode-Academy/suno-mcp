@@ -19,7 +19,7 @@ const catalog: McpCatalog = {
     ...FALLBACK_CATALOG.music,
     { id: 'elevenlabs-music', label: 'ElevenLabs Music', kind: 'music', quotaCost: 4, costPerSeconds: 16, defaultDurationSec: 60, minDurationSec: 10, maxDurationSec: 180 },
   ],
-  userDefaults: { music: { id: 'suno-v4_5' }, sfx: { id: 'elevenlabs-sfx' } },
+  userDefaults: { music: { id: 'suno-v6' }, sfx: { id: 'elevenlabs-sfx' } },
 };
 
 const sfxTool = { name: 'generate_sfx', description: 'sfx', inputSchema: { type: 'object', properties: { prompt: { type: 'string' } }, required: ['prompt'] } };
@@ -28,12 +28,12 @@ test('generate_music ganha `model` com ids do catálogo + legados, sem perder os
   const tools = extendToolSchemas([...toolSchemas, sfxTool] as any[], catalog);
   const gm = tools.find((t) => t.name === 'generate_music')!;
   const model = gm.inputSchema.properties.model;
-  for (const id of ['suno-v4_5', 'lyria-3-pro', 'minimax-2.6', 'stable-audio-2.5', 'elevenlabs-music', 'V4', 'V4_5', 'V5_5']) {
+  for (const id of ['suno-v6', 'lyria-3-pro', 'minimax-2.6', 'stable-audio-2.5', 'elevenlabs-music', 'V4', 'V4_5', 'V5_5']) {
     assert.ok(model.enum.includes(id), id);
   }
   assert.match(model.description, /default/i);
   assert.match(model.description, /Options \(credits → what you get\)/);
-  assert.match(model.description, /suno-v4_5 = Suno V4\.5 \(1 credit → 2 songs;/);
+  assert.match(model.description, /suno-v6 = Suno V6 \(1 credit → 2 songs;/);
   assert.match(model.description, /lyria-3-pro = Google Lyria 3 Pro \(2 credits → 1 track;/);
   assert.match(model.description, /minimax-2\.6 = MiniMax Music 2\.6 \(4 credits → 1 song, exact lyrics;/);
   assert.match(model.description, /stable-audio-2\.5 = Stable Audio 2\.5 \(5 credits → 1 long instrumental;/);
@@ -56,21 +56,21 @@ test('generate_sfx ganha `model` com os ids de efeitos', () => {
   assert.doesNotMatch(sfx.inputSchema.properties.model.description, /generation/i);
 });
 
-test('aviso de modelo: padrão Suno V4.5 — custo → resultado e saldo em créditos', () => {
-  const text = modelNotice({ kind: 'music', catalog, modelId: 'suno-v4_5', isDefault: true, cost: 1, remaining: 85 });
+test('aviso de modelo: padrão Suno V6 — custo → resultado e saldo em créditos', () => {
+  const text = modelNotice({ kind: 'music', catalog, modelId: 'suno-v6', isDefault: true, cost: 1, remaining: 85 });
   assert.equal(
     text,
-    '🎛️ Model: Suno V4.5 — your default · 1 credit → 2 songs. 85 credits left. Change your default at https://sunoboard.com/settings#models or ask me for: lyria-3-pro (2 credits → 1 track), minimax-2.6 (4 credits → 1 song, exact lyrics), stable-audio-2.5 (5 credits → 1 long instrumental), elevenlabs-music (4 credits → 60 s).',
+    '🎛️ Model: Suno V6 — your default · 1 credit → 2 songs. 85 credits left. Change your default at https://sunoboard.com/settings#models or ask me for: lyria-3-pro (2 credits → 1 track), minimax-2.6 (4 credits → 1 song, exact lyrics), stable-audio-2.5 (5 credits → 1 long instrumental), elevenlabs-music (4 credits → 60 s).',
   );
   // sem saldo conhecido (BYOK + Suno) não inventa número
-  assert.doesNotMatch(modelNotice({ kind: 'music', catalog, modelId: 'suno-v4_5', isDefault: true, cost: 1 }), /left/);
-  assert.match(modelNotice({ kind: 'music', catalog, modelId: 'suno-v4_5', isDefault: true, cost: 1, remaining: 1 }), / 1 credit left\./);
+  assert.doesNotMatch(modelNotice({ kind: 'music', catalog, modelId: 'suno-v6', isDefault: true, cost: 1 }), /left/);
+  assert.match(modelNotice({ kind: 'music', catalog, modelId: 'suno-v6', isDefault: true, cost: 1, remaining: 1 }), / 1 credit left\./);
 });
 
 test('aviso de modelo: escolhido no pedido, mostra o padrão e oferece o Suno', () => {
-  const text = modelNotice({ kind: 'music', catalog, modelId: 'minimax-2.6', isDefault: false, cost: 4, defaultLabel: 'Suno V4.5' });
-  assert.match(text, /^🎛️ Model: MiniMax Music 2\.6 — picked for this request; your default is Suno V4\.5 · 4 credits → 1 song with your exact lyrics\. Change/);
-  assert.match(text, /suno-v4_5 \(1 credit → 2 songs\)/);
+  const text = modelNotice({ kind: 'music', catalog, modelId: 'minimax-2.6', isDefault: false, cost: 4, defaultLabel: 'Suno V6' });
+  assert.match(text, /^🎛️ Model: MiniMax Music 2\.6 — picked for this request; your default is Suno V6 · 4 credits → 1 song with your exact lyrics\. Change/);
+  assert.match(text, /suno-v6 \(1 credit → 2 songs\)/);
   assert.match(text, /elevenlabs-music \(4 credits → 60 s\)/);
   // ElevenLabs Music: o resultado acompanha a duração pedida
   const el = modelNotice({ kind: 'music', catalog, modelId: 'elevenlabs-music', isDefault: false, cost: 6, durationSec: 90 });
@@ -89,10 +89,12 @@ test('aviso de efeitos: contam como efeitos; ambience cobra créditos', () => {
 });
 
 test('modelos: legado e custo por duração', () => {
-  assert.equal(normalizeMusicModel('V4_5'), 'suno-v4_5');
+  assert.equal(normalizeMusicModel('V4_5'), 'suno-v6');
+  assert.equal(normalizeMusicModel('suno-v5_5'), 'suno-v6'); // preferência salva antiga
+  assert.equal(normalizeMusicModel('V6_MINI'), 'suno-v6_mini');
   assert.equal(normalizeMusicModel('Lyria-3-Pro'), 'lyria-3-pro');
   assert.equal(normalizeMusicModel(''), undefined);
-  assert.equal(sunoLegacyValue('suno-v5_5'), 'V5_5');
+  assert.equal(sunoLegacyValue('suno-v6'), 'V6');
   const el = catalog.music.find((m) => m.id === 'elevenlabs-music');
   assert.equal(costFor(el, 30), 2);
   assert.equal(costFor(el, 90), 6);
@@ -106,8 +108,8 @@ test('list_models mostra custo, melhor uso e padrões do usuário', () => {
   const lyria = out.music.find((m) => m.id === 'lyria-3-pro')!;
   assert.equal(lyria.cost, '2 credits → 1 track (up to ~3 min)');
   assert.equal(lyria.yourDefault, true);
-  assert.equal(out.music.find((m) => m.id === 'suno-v4_5')!.recommended, true);
-  assert.equal(out.music.find((m) => m.id === 'suno-v4_5')!.cost, '1 credit → 2 songs');
+  assert.equal(out.music.find((m) => m.id === 'suno-v6')!.recommended, true);
+  assert.equal(out.music.find((m) => m.id === 'suno-v6')!.cost, '1 credit → 2 songs');
   assert.equal(out.music.find((m) => m.id === 'minimax-2.6')!.cost, '4 credits → 1 song with your exact lyrics');
   assert.equal(out.music.find((m) => m.id === 'stable-audio-2.5')!.cost, '5 credits → 1 long instrumental (up to 3 min)');
   assert.equal(out.music.find((m) => m.id === 'elevenlabs-music')!.cost, '4 credits → 1 track of 60 s (1 credit per 16 s, length 10–180 s)');
@@ -128,7 +130,7 @@ test('modelo indisponível (cota do mês esgotada) aparece assim no list_models 
   const el = formatModelList(down).music.find((m) => m.id === 'elevenlabs-music')!;
   assert.equal(el.available, false);
   assert.match(String((el as any).unavailableReason), /this month/);
-  const text = modelNotice({ kind: 'music', catalog: down, modelId: 'suno-v4_5', isDefault: true, cost: 1 });
+  const text = modelNotice({ kind: 'music', catalog: down, modelId: 'suno-v6', isDefault: true, cost: 1 });
   assert.ok(!text.includes('elevenlabs-music'));
   const gm = extendToolSchemas([...toolSchemas] as any[], down).find((t) => t.name === 'generate_music')!;
   assert.ok(gm.inputSchema.properties.model.description.includes('pick the length; UNAVAILABLE right now)'));

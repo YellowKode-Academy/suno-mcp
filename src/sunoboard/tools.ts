@@ -167,7 +167,7 @@ export function createSunoBoardTools(opts: { apiKey: string; apiBase: string; we
         const { catalog, live } = await getCatalog();
         const requested = normalizeMusicModel(args.model);
         const defaultId = catalog.userDefaults?.music?.id;
-        const modelId = requested ?? defaultId ?? (live ? 'suno-v4_5' : undefined);
+        const modelId = requested ?? defaultId ?? (live ? 'suno-v6' : undefined);
         const duration = typeof args.duration_seconds === 'number' ? args.duration_seconds : undefined;
         let gen: Record<string, unknown>;
         let cost = 1;
@@ -195,7 +195,7 @@ export function createSunoBoardTools(opts: { apiKey: string; apiBase: string; we
             message: `Generation started with ${res.data.modelLabel ?? modelId}. TaskId: ${taskId}. Use wait_for_music to get the audio URL (1 track).`,
           };
         }
-        const effectiveId = modelId ?? 'suno-v4_5';
+        const effectiveId = modelId ?? 'suno-v6';
         const usage = await fetchUsage();
         const pool = creditPool(usage, isSunoId(effectiveId));
         const notice = formatQuotaNotice(pool, WEB_URL);
