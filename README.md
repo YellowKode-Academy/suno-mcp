@@ -207,4 +207,4 @@ Tests: `npm test`
 
 MIT © [YellowKode Academy](https://yellowkode.com) · [Wunka Tech](https://wunka.tech)
 
-*Built with ❤️ by [Kelvin Biffi](https://instagram.com/kelvinbiffi.negocios)*
+*Built with ❤️ by the [SunoBoard](https://sunoboard.com) Team*
